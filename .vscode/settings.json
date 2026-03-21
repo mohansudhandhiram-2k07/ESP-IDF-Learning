@@ -1,0 +1,52 @@
+{
+  "editor.suggest.selectionMode": "never",
+  "workbench.colorTheme": "Visual Studio Dark - C++",
+  "git.openRepositoryInParentFolders": "never",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "vscode-edge-devtools.webhintInstallNotification": true,
+  "files.autoSave": "afterDelay",
+
+  "editor.inlineSuggest.enabled": false,
+  "editor.inlineSuggest.edits.renderSideBySide": "never",
+
+  "editor.quickSuggestions": {
+    "comments": "off",
+    "strings": "off",
+    "other": "off"
+  },
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.snippetSuggestions": "none",
+
+  "json.schemas": [],
+  "workbench.editor.enablePreview": false,
+  "editor.rename.enablePreview": false,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "security.allowedUNCHosts": [
+    "wsl.localhost"
+  ],
+  "security.workspace.trust.untrustedFiles": "open",
+  
+  "idf.hasWalkthroughBeenShown": true,
+  "idf.espIdfPath": "/home/mohan/esp/esp-idf",
+  "idf.toolsPath": "/home/mohan/.espressif",
+  "idf.gitPath": "git",
+  "idf.pythonInstallPath": "/usr/bin/python",
+  
+  "update.enableWindowsBackgroundUpdates": false,
+  "chat.viewSessions.orientation": "stacked",
+  "C_Cpp.autocompleteAddParentheses": true,
+  
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.clang_format_fallbackStyle": "Google",
+  
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  
+  "[cpp]": {
+    "editor.defaultFormatter": "xaver.clang-format"
+  },
+  "[c]": {
+    "editor.defaultFormatter": "xaver.clang-format"
+  }
+}
