@@ -8,9 +8,10 @@
 #define BTN_PIN GPIO_NUM_4
 
 
-static volatile bool led_state = false;
+//static volatile bool led_state = false;
 static const char *TAG = "app_1";
-static volatile bool led_prev_state = false;
+//static volatile bool led_prev_state = false;
+static QueueHandle_t led_queue;
 
 extern "C" { void app_main(void); }
 
@@ -20,8 +21,13 @@ void IRAM_ATTR button_isr_handler(void* arg)
   uint32_t curr_time = xTaskGetTickCountFromISR();
   if(curr_time - prev_time > (300 / portTICK_PERIOD_MS))
   {
-    prev_time = curr_time;
-    led_state = !led_state;
+    int cmd = 2;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR(led_queue, &cmd, &xHigherPriorityTaskWoken);
+    if(xHigherPriorityTaskWoken)
+    {
+      portYIELD_FROM_ISR();
+    }
   }
   
 }
@@ -45,12 +51,14 @@ void rx_task(void *arg)
           if(strncmp((char *)data, "OFF", 3) == 0 || data[0] == '0')
           {
             ESP_LOGI(TAG,"CMD: OFF\n");
-            led_state = false;
+            int val = 0;
+            xQueueSend(led_queue,&val,0);
           }
           else if(strncmp((char *)data, "ON", 2) == 0 || data[0] == '1')
           {
             ESP_LOGI(TAG,"CMD: ON\n");
-            led_state = true;
+            int val = 1;
+            xQueueSend(led_queue,&val,0);
           }
           else
           {
@@ -74,16 +82,15 @@ void rx_task(void *arg)
 
 void app_main(void) 
 {
-  
+  led_queue = xQueueCreate(10,sizeof(int));
+
   gpio_reset_pin(LED_PIN);
   gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
-  
   
   gpio_reset_pin(BTN_PIN);
   gpio_set_direction(BTN_PIN, GPIO_MODE_INPUT);
   gpio_set_pull_mode(BTN_PIN, GPIO_PULLUP_ONLY); 
   gpio_set_intr_type(BTN_PIN, GPIO_INTR_NEGEDGE); 
-  
   
   gpio_install_isr_service(0);
   gpio_isr_handler_add(BTN_PIN, button_isr_handler, NULL);
@@ -100,16 +107,25 @@ void app_main(void)
   uart_param_config(UART_NUM_0,&uart_config);
   uart_driver_install(UART_NUM_0, 1024*2, 0, 0, NULL, 0);
   xTaskCreate(rx_task, "uart_task", 4096, NULL, 10, NULL);
+  
+  int received_val;
+  bool ledstate = false;
+
   while(1) 
   {
-    
-    if(led_state != led_prev_state)
+    if(xQueueReceive(led_queue,&received_val,portMAX_DELAY))
     {
-      led_prev_state = led_state;
-      const char *state = led_state ? "ON" : "OFF";
-      ESP_LOGI(TAG,"led is %s",state);
+      if(received_val == 2)
+      {
+        ledstate = !ledstate;
+      }
+      else
+      {
+        ledstate = received_val;
+      }
+      gpio_set_level(LED_PIN,ledstate);
+      ESP_LOGI(TAG,"ESP Received value: %d",received_val);
     }
-    gpio_set_level(LED_PIN, led_state); 
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    
   }
 }
